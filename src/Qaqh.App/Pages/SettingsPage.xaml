@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Qaqh_App.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Qaqh_App"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008">
+
+    <Page.Resources>
+        <Style x:Key="SettingLabel" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="CardPanel" TargetType="Border">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{ThemeResource OverlayCornerRadius}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="880" HorizontalAlignment="Left" Padding="24,16,24,16" Spacing="12">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="设置" />
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind Vm.StatusText, Mode=OneWay}" />
+
+            <!--  默认模型（provider 目录面：provider.list 读 / model.selection.set_default 写）  -->
+            <Border Style="{StaticResource CardPanel}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="默认模型" />
+                    <Grid ColumnSpacing="8" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource SettingLabel}" Text="Provider" />
+                        <ComboBox
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            DisplayMemberPath="Name"
+                            ItemsSource="{x:Bind Vm.Catalog, Mode=OneWay}"
+                            SelectedItem="{x:Bind Vm.SelectedProvider, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="1" Style="{StaticResource SettingLabel}" Text="模型" />
+                        <ComboBox
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            DisplayMemberPath="Display"
+                            ItemsSource="{x:Bind Vm.ProviderModels, Mode=OneWay}"
+                            SelectedItem="{x:Bind Vm.SelectedModel, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="2" Style="{StaticResource SettingLabel}" Text="推理力度" />
+                        <ComboBox
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            ItemsSource="{x:Bind Vm.EffortOptions, Mode=OneWay}"
+                            SelectedItem="{x:Bind Vm.SelectedEffort, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="3" Style="{StaticResource SettingLabel}" Text="当前默认" />
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind Vm.CatalogDefaultText, Mode=OneWay}" />
+                    </Grid>
+                    <Button
+                        Click="SaveDefault_Click"
+                        Content="设为默认模型"
+                        Style="{ThemeResource AccentButtonStyle}" />
+                    <TextBlock
+                        FontSize="11"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        TextWrapping="Wrap"
+                        Text="端点与密钥由下方『服务商目录』决定；推理力度留空 = 跟随模型自身默认。保存后会读回目录校验，未生效会明确报错。" />
+                </StackPanel>
+            </Border>
+
+            <!--  权限等级  -->
+            <Border Style="{StaticResource CardPanel}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="权限等级" />
+                    <RadioButtons SelectedIndex="{x:Bind Vm.PermissionLevelIndex, Mode=TwoWay}" SelectionChanged="PermissionLevel_SelectionChanged">
+                        <RadioButton Content="1 · 只读" />
+                        <RadioButton Content="2 · 工作区写入" />
+                        <RadioButton Content="3 · 跳过确认" />
+                        <RadioButton Content="4 · 沙盒运行" />
+                    </RadioButtons>
+                </StackPanel>
+            </Border>
+
+            <!--  账号  -->
+            <Border Style="{StaticResource CardPanel}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="账号" />
+                    <Grid ColumnSpacing="8" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource SettingLabel}" Text="ChatGPT (siwc)" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Vm.Accounts.SiwcStatus, Mode=OneWay}" />
+                        <Button Grid.Column="2" Click="SiwcSignIn_Click" Content="登录" />
+                        <Button Grid.Column="3" Click="SiwcSignOut_Click" Content="登出" />
+                        <TextBlock Grid.Row="1" Style="{StaticResource SettingLabel}" Text="DeepSeek" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{x:Bind Vm.Accounts.DsStatus, Mode=OneWay}" />
+                        <Button Grid.Row="1" Grid.Column="2" Click="DsSignIn_Click" Content="登录" />
+                        <Button Grid.Row="1" Grid.Column="3" Click="DsSignOut_Click" Content="登出" />
+                    </Grid>
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind Vm.Accounts.SigningMessage, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <!--  Providers  -->
+            <Border Style="{StaticResource CardPanel}">
+                <StackPanel Spacing="10">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="服务商目录（provider.upsert / delete）" />
+                    <ListView ItemsSource="{x:Bind Vm.Providers, Mode=OneWay}" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:ProviderRowVm">
+                                <Grid Height="44" ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon
+                                        FontSize="13"
+                                        Glyph="&#xE943;"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}" />
+                                        <TextBlock
+                                            FontSize="11"
+                                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                            Text="{x:Bind Id, Mode=OneWay}" />
+                                    </StackPanel>
+                                    <Button
+                                        Grid.Column="2"
+                                        Click="ProviderDelete_Click"
+                                        Content="删除"
+                                        Tag="{x:Bind Id}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <Grid ColumnSpacing="8" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource SettingLabel}" Text="ID" />
+                        <TextBox x:Name="ProviderIdBox" PlaceholderText="provider-id" />
+                        <TextBlock Grid.Row="1" Style="{StaticResource SettingLabel}" Text="名称" />
+                        <TextBox x:Name="ProviderNameBox" Grid.Row="1" />
+                        <TextBlock Grid.Row="2" Style="{StaticResource SettingLabel}" Text="Base URL" />
+                        <TextBox x:Name="ProviderUrlBox" Grid.Row="2" />
+                        <TextBlock Grid.Row="3" Style="{StaticResource SettingLabel}" Text="API Key" />
+                        <PasswordBox x:Name="ProviderKeyBox" Grid.Row="3" Grid.Column="1" PlaceholderText="留空则不修改" />
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Click="ProviderUpsert_Click" Content="保存 / 新增 Provider" />
+                        <Button Click="ProviderRefresh_Click" Content="刷新" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

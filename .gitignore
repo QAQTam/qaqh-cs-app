@@ -1,0 +1,13 @@
+bin/
+obj/
+*.user
+.vs/
+contract/
+*.binlog
+artifacts/
+
+# Development certificate
+devcert.pfx
+
+# Package output
+dist/

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Qaqh.App/Qaqh.App.csproj" />
+    <Project Path="src/Qaqh.Sdk/Qaqh.Sdk.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Qaqh.Sdk.Tests/Qaqh.Sdk.Tests.csproj" />
+  </Folder>
+</Solution>

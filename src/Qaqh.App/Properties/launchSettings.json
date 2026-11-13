@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Qaqh.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Qaqh.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

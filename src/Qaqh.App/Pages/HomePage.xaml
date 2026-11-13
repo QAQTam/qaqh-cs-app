@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Qaqh_App.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:pages="using:Qaqh_App.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <Grid Padding="24,16,24,16" RowSpacing="16" MaxWidth="920" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="QAQ Harness" />
+
+            <!--  daemon 生命周期  -->
+            <Border
+                Grid.Row="1"
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{ThemeResource OverlayCornerRadius}">
+                <Grid RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="daemon" />
+
+                    <Grid Grid.Row="1" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse
+                            Width="10"
+                            Height="10"
+                            VerticalAlignment="Center"
+                            Fill="{x:Bind Vm.ConnectionBrush, Mode=OneWay}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind Vm.ConnectionText, Mode=OneWay}" />
+                    </Grid>
+
+                    <InfoBar
+                        Grid.Row="2"
+                        IsClosable="False"
+                        IsOpen="{x:Bind pages:HomePage.HasError(Vm.LastError), Mode=OneWay}"
+                        IsIconVisible="True"
+                        Message="{x:Bind Vm.LastError, Mode=OneWay}"
+                        Severity="Error"
+                        Title="连接出错" />
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+                        <Button
+                            Click="Reconnect_Click"
+                            Content="连接 / 重连"
+                            IsEnabled="{x:Bind pages:HomePage.NotConnected(Vm.ConnectionKind), Mode=OneWay}" />
+                        <Button Click="StopDaemon_Click" Content="停止 daemon" />
+                        <Button Click="StopDaemonIfIdle_Click" Content="空闲时停止" />
+                        <ProgressRing
+                            Width="24"
+                            Height="24"
+                            IsActive="{x:Bind pages:HomePage.IsConnecting(Vm.ConnectionKind), Mode=OneWay}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!--  欢迎卡片  -->
+            <Border
+                Grid.Row="2"
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{ThemeResource OverlayCornerRadius}">
+                <StackPanel Spacing="8">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="开始使用" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="左侧栏选择工作区并新建会话，或点击已有会话继续对话。会话内的工具调用、执行终端与审批请求都会即时出现在聊天流中。"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Page>
