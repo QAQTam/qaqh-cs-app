@@ -5,13 +5,17 @@
 # 两条主线：
 #   调试：just run        → debug identity 散跑，免证书免安装，改完即跑
 #   安装：just cert-install（一次性）&& just install → 签名 MSIX 并注册
-# 在 Git Bash 里运行（配方假定 sh 语义）。
+# 配方一律按 pwsh 语义执行（见下方 set shell），在 pwsh / Git Bash / cmd 里
+# 调用 `just <recipe>` 都可以，不再依赖 sh.exe。
+
+# 配方脚本用 pwsh 执行。注意：just 逐行起进程，跨行不共享 $env:*，
+# 需要 PATH/env 前缀的配方把赋值和命令写在同一行。
+set shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
 # dotnet 未收录进本机 PATH 时回退标准安装位置；DOTNET_ROOT 可覆盖
 dotnet_dir := env("DOTNET_ROOT", "C:/Program Files/dotnet")
 dotnet := if path_exists(dotnet_dir + "/dotnet.exe") == "true" { dotnet_dir + "/dotnet.exe" } else { "dotnet" }
-# winapp 靠 PATH 搜索 dotnet（不认 DOTNET_ROOT），且 msys 形式条目才生效 → winapp 配方前置
-dotnet_path := replace(dotnet_dir, "C:/", "/c/")
+# winapp 靠 PATH 搜索 dotnet（不认 DOTNET_ROOT）→ 调 winapp 的配方先把 dotnet_dir 前置进 $env:PATH
 
 # dev 模式 daemon 根目录（应用按 <root>/target/debug/qaqh-daemon.exe 解析）；基线 = 后端主仓
 backend_root := env("QAQH_BACKEND_ROOT", absolute_path("../qaqh-backend"))
@@ -40,26 +44,26 @@ sync-contract-only:
 
 # 构建全部
 build:
-    "{{dotnet}}" build Qaqh.CsApp.slnx
+    & "{{dotnet}}" build Qaqh.CsApp.slnx
 
 # SDK 单测
 test:
-    "{{dotnet}}" test tests/Qaqh.Sdk.Tests/Qaqh.Sdk.Tests.csproj
+    & "{{dotnet}}" test tests/Qaqh.Sdk.Tests/Qaqh.Sdk.Tests.csproj
 
 # 清理构建产物与打包输出
 clean:
-    "{{dotnet}}" clean Qaqh.CsApp.slnx
-    rm -rf {{dist}}
+    & "{{dotnet}}" clean Qaqh.CsApp.slnx
+    Remove-Item -Recurse -Force {{dist}} -ErrorAction SilentlyContinue
 
 # ── 调试（散跑 + debug identity，免证书免安装）──────────────────────────────
 
 # 构建并以包身份运行（winapp 注册 debug identity，自动继承 QAQH_BACKEND_ROOT）
 run:
-    PATH="{{dotnet_path}}:$PATH" QAQH_BACKEND_ROOT="{{backend_root}}" winapp run src/Qaqh.App -c Debug --detach
+    $env:PATH = "{{dotnet_dir}};$env:PATH"; $env:QAQH_BACKEND_ROOT = "{{backend_root}}"; winapp run src/Qaqh.App -c Debug --detach
 
 # 同 run，但先清掉应用 LocalState（设置/缓存排障用）
 run-clean:
-    PATH="{{dotnet_path}}:$PATH" QAQH_BACKEND_ROOT="{{backend_root}}" winapp run src/Qaqh.App -c Debug --detach --clean
+    $env:PATH = "{{dotnet_dir}};$env:PATH"; $env:QAQH_BACKEND_ROOT = "{{backend_root}}"; winapp run src/Qaqh.App -c Debug --detach --clean
 
 # 本地 mock LLM：OpenAI 兼容 SSE 流（端到端验收用，默认 8318）
 mock-llm port="8318":
@@ -78,8 +82,8 @@ cert-install:
 # Release 构建 + 打包 + 签名 → dist/Qaqh.App.msix
 package:
     # 必须显式传 .csproj：目录输入会被当作 layout 文件夹，--arch/-c 会被拒
-    mkdir -p {{dist}}
-    PATH="{{dotnet_path}}:$PATH" winapp package src/Qaqh.App/Qaqh.App.csproj -c Release --arch {{arch}} --cert {{cert}} --output {{msix}}
+    New-Item -ItemType Directory -Force {{dist}} | Out-Null
+    $env:PATH = "{{dotnet_dir}};$env:PATH"; winapp package src/Qaqh.App/Qaqh.App.csproj -c Release --arch {{arch}} --cert {{cert}} --output {{msix}}
 
 # 打包并安装（需先 just cert-install 信任证书）
 install: (package)
